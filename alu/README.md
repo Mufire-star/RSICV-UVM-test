@@ -1,24 +1,24 @@
-# ALU verification framework (alu_2)
+# ALU verification framework (alu)
 
-¿ìËÙËµÃ÷£º
+å¿«é€Ÿè¯´æ˜ï¼š
 
-- RTL: [alu_2/rtl/alu.v](alu_2/rtl/alu.v)
-- Testbench: [alu_2/tb/top_tb.sv](alu_2/tb/top_tb.sv), [alu_2/tb/dut.sv](alu_2/tb/dut.sv), [alu_2/tb/driver.sv](alu_2/tb/driver.sv)
-- ÁĞ±í: [alu_2/filelist.f](alu_2/filelist.f)
-- Makefile: [alu_2/Makefile](alu_2/Makefile)
+- RTL: [alu/rtl/alu.v](alu_2/rtl/alu.v)
+- Testbench: [alu/tb/top_tb.sv](alu_2/tb/top_tb.sv), [alu_2/tb/dut.sv](alu_2/tb/dut.sv), [alu_2/tb/driver.sv](alu_2/tb/driver.sv)
+- åˆ—è¡¨: [alu/filelist.f](alu_2/filelist.f)
+- Makefile: [alu/Makefile](alu_2/Makefile)
 
-ÔËĞĞ£¨Ğè°²×° Icarus Verilog£©:
+è¿è¡Œï¼ˆéœ€å®‰è£… Icarus Verilogï¼‰:
 
 ```sh
-cd alu_2
+cd alu
 make run
 ```
 
-»òÊÖ¶¯:
+æˆ–æ‰‹åŠ¨:
 
 ```sh
 iverilog -g2012 -o alu_tb.vvp $(cat filelist.f)
 vvp alu_tb.vvp
 ```
 
-¸Ã ALU Ö§³ÖµÄ²Ù×÷£¨ÖÁÉÙ 6 ¸ö£©£ºADD, SUB, AND, OR, XOR, SLL, SRL¡£
+è¯¥ ALU æ”¯æŒçš„æ“ä½œï¼ˆè‡³å°‘ 6 ä¸ªï¼‰ï¼šADD, SUB, AND, OR, XOR, SLL, SRLã€‚
