@@ -13,4 +13,4 @@
   ls -l simv.daidir wave.fsdb wave.vcd try_fsdb.log
 ```
   会生成`wave.fsdb`波形文件
-  运行命令 `make clean` 清楚生成的文件，运行前清除，避免报错
+  运行命令 `make clean` 清除生成的文件，运行前清除，避免报错
