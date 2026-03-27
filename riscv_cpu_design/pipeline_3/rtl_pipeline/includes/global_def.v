@@ -1,0 +1,9 @@
+`ifndef PIPELINE_GLOBAL_DEF_V
+`define PIPELINE_GLOBAL_DEF_V
+
+`define RESET_PC  32'h0000_0000
+`define NOP_INSTR 32'h0000_0013
+`define IMEM_DEPTH 1024
+`define DMEM_DEPTH 1024
+
+`endif

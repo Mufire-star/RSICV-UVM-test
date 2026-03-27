@@ -1,0 +1,123 @@
+digraph pipeline3_teaching {
+    graph [
+        rankdir=LR,
+        splines=ortho,
+        nodesep=0.45,
+        ranksep=0.7,
+        pad=0.2,
+        bgcolor="white",
+        fontname="Helvetica"
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fontname="Helvetica",
+        fontsize=12,
+        color="#334155",
+        penwidth=1.2,
+        margin="0.12,0.08"
+    ];
+
+    edge [
+        fontname="Helvetica",
+        fontsize=10,
+        color="#475569",
+        arrowsize=0.8,
+        penwidth=1.2
+    ];
+
+    subgraph cluster_if {
+        label="IF Stage";
+        color="#93c5fd";
+        style="rounded";
+        penwidth=1.5;
+        PC [label="PC", fillcolor="#dbeafe"];
+        PC4 [label="PC + 4", fillcolor="#dbeafe"];
+        PCMUX [label="Next PC Mux", fillcolor="#bfdbfe"];
+        IM [label="Instruction Memory", fillcolor="#dbeafe"];
+        IMREQ [label="Fetch Align Reg", fillcolor="#bfdbfe"];
+        IFID [label="IF / ID Register", fillcolor="#93c5fd"];
+    }
+
+    subgraph cluster_idex {
+        label="ID / EX Stage";
+        color="#86efac";
+        style="rounded";
+        penwidth=1.5;
+        DEC [label="Decoder", fillcolor="#dcfce7"];
+        IMM [label="ImmGen", fillcolor="#dcfce7"];
+        RF [label="Register File", fillcolor="#dcfce7"];
+        FWDA [label="Forward Mux A", fillcolor="#bbf7d0"];
+        FWDB [label="Forward Mux B", fillcolor="#bbf7d0"];
+        SRCB [label="ALU Src-B Mux", fillcolor="#bbf7d0"];
+        ALU [label="ALU", fillcolor="#bbf7d0"];
+        CMP [label="Branch Compare", fillcolor="#dcfce7"];
+        REDIR [label="Redirect Logic", fillcolor="#bbf7d0"];
+    }
+
+    subgraph cluster_memwb {
+        label="MEM / WB Stage";
+        color="#fdba74";
+        style="rounded";
+        penwidth=1.5;
+        DM [label="Data Memory", fillcolor="#ffedd5"];
+        WBREG [label="WB Registers", fillcolor="#fed7aa"];
+        WBMUX [label="Write-Back Mux", fillcolor="#ffedd5"];
+    }
+
+    NOTE1 [shape=note, style="filled", fillcolor="#f8fafc", color="#cbd5e1",
+           label="Instruction fields\nrs1 / rs2 / rd"];
+    NOTE2 [shape=note, style="filled", fillcolor="#f8fafc", color="#cbd5e1",
+           label="Blue: control\nOrange: write-back/forwarding\nPurple: redirect/flush"];
+
+    PC -> PC4 [label="pc"];
+    PC4 -> PCMUX [label="pc+4"];
+    PCMUX -> PC [label="next pc"];
+    PC -> IM [label="fetch addr"];
+    PC -> IMREQ [label="issued pc"];
+    IMREQ -> IFID [label="pc / valid"];
+    IM -> IFID [label="instruction"];
+
+    IFID -> DEC [label="instruction"];
+    IFID -> IMM [label="instruction"];
+    IFID -> NOTE1 [label="instruction"];
+    NOTE1 -> RF [label="rs1 / rs2"];
+    NOTE1 -> WBREG [label="rd"];
+
+    RF -> FWDA [label="rs1_data"];
+    RF -> FWDB [label="rs2_data"];
+    WBMUX -> FWDA [label="forward wb_data", color="#ea580c"];
+    WBMUX -> FWDB [label="forward wb_data", color="#ea580c"];
+    FWDA -> ALU [label="operand_a"];
+    FWDB -> SRCB [label="operand_b_raw"];
+    IMM -> SRCB [label="imm"];
+    SRCB -> ALU [label="operand_b"];
+
+    FWDA -> CMP [label="cmp a"];
+    FWDB -> CMP [label="cmp b"];
+    CMP -> REDIR [label="eq/ne"];
+    IMM -> REDIR [label="branch/jump imm"];
+    IFID -> REDIR [label="if_id_pc"];
+    FWDA -> REDIR [label="jalr base"];
+
+    DEC -> ALU [label="alu_op", color="#2563eb"];
+    DEC -> SRCB [label="use_imm", color="#2563eb"];
+    DEC -> DM [label="mem_re / mem_we", color="#2563eb"];
+    DEC -> WBREG [label="reg_write / wb_sel", color="#2563eb"];
+    DEC -> REDIR [label="branch / jump type", color="#2563eb"];
+
+    ALU -> DM [label="addr"];
+    FWDB -> DM [label="store data"];
+    ALU -> WBREG [label="alu result"];
+    IFID -> WBREG [label="pc+4"];
+    DM -> WBMUX [label="load data"];
+    WBREG -> WBMUX [label="alu / pc+4 / rd / wb_sel"];
+    WBMUX -> RF [label="write-back", color="#ea580c", penwidth=1.5];
+
+    REDIR -> PCMUX [label="redirect pc", color="#9333ea", penwidth=1.5];
+    REDIR -> IFID [label="flush", color="#9333ea", style=dashed];
+    REDIR -> IMREQ [label="cancel wrong path", color="#9333ea", style=dashed];
+
+    NOTE2 -> PC [style=invis];
+}

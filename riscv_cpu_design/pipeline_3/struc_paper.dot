@@ -1,0 +1,54 @@
+digraph pipeline3_paper {
+    graph [
+        rankdir=LR,
+        splines=polyline,
+        nodesep=0.7,
+        ranksep=1.0,
+        pad=0.25,
+        bgcolor="white",
+        fontname="Helvetica"
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fontname="Helvetica",
+        fontsize=14,
+        color="#1f2937",
+        penwidth=1.4,
+        margin="0.18,0.12"
+    ];
+
+    edge [
+        fontname="Helvetica",
+        fontsize=11,
+        color="#4b5563",
+        arrowsize=0.9,
+        penwidth=1.4
+    ];
+
+    IF [label="IF Stage\nPC, Instruction Memory,\nFetch Alignment, IF/ID Register", fillcolor="#dbeafe"];
+    IDEX [label="ID / EX Stage\nDecode, Immediate Generation,\nRegister File, Forwarding,\nALU, Branch/Jump Decision", fillcolor="#dcfce7"];
+    MEMWB [label="MEM / WB Stage\nData Memory,\nWB Registers, WB Mux", fillcolor="#ffedd5"];
+
+    CTRL [label="Control Signals\nalu_op, use_imm,\nmem_re/we, wb_sel,\nbranch/jump type", fillcolor="#e5e7eb"];
+    FWD [label="WB -> EX Forwarding", fillcolor="#fde68a"];
+    REDIR [label="Redirect / Flush Path", fillcolor="#f5d0fe"];
+
+    IF -> IDEX [label="instruction, pc, pc+4"];
+    IDEX -> MEMWB [label="alu result,\nstore data,\ncontrol state"];
+    MEMWB -> IDEX [label="wb_data", color="#d97706", penwidth=1.6];
+    MEMWB -> MEMWB [label="load data select", color="#d97706", penwidth=1.2];
+
+    CTRL -> IDEX [label="decode control", color="#2563eb"];
+    CTRL -> MEMWB [label="wb / mem control", color="#2563eb"];
+
+    FWD -> IDEX [label="operand bypass", color="#ca8a04"];
+    MEMWB -> FWD [label="wb result", color="#ca8a04"];
+
+    IDEX -> REDIR [label="branch/jump result", color="#9333ea"];
+    REDIR -> IF [label="redirect pc / flush", color="#9333ea", penwidth=1.6];
+
+    LEGEND [shape=note, style="filled", fillcolor="white", color="#d1d5db",
+        label="Three-stage pipeline overview\nBlue: control path\nOrange/Yellow: write-back and forwarding\nPurple: control-transfer recovery"];
+}

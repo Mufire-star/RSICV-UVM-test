@@ -1,0 +1,48 @@
+# Makefile for the standalone pipeline RTL
+
+SEED = 1
+IVERILOG ?= iverilog
+VVP ?= vvp
+
+default: clean test_ivl
+
+test: compile run
+
+run:
+	./simv +vcs+loopdetect +vcs+loopreport -l simv_pipeline.log +ntb_random_seed=$(SEED)
+
+compile:
+	vcs \
+		-f ./files_pipeline.f \
+		-timescale=1ns/1ps \
+		-full64 +vc +v2k -sverilog -debug_all \
+		-LDFLAGS -Wl,--no-as-needed \
+		+notimingchecks +nospecify \
+		| tee compile_pipeline.log
+
+test_ivl: test_ivl_basic test_ivl_loop test_ivl_instr test_ivl_hazard
+
+check_ivl_techmem:
+	$(IVERILOG) -g2012 -DPIPELINE_TECH_MEM -DPIPELINE_TECH_RF -I ../rtl_pipeline/includes -s riscv_pipeline -o pipeline_techmem.out ../rtl_pipeline/*.v
+
+test_ivl_basic:
+	$(IVERILOG) -g2012 -o pipeline_basic.out -f files_pipeline.f
+	$(VVP) pipeline_basic.out
+
+test_ivl_loop:
+	$(IVERILOG) -g2012 -o pipeline_loop.out -f files_pipeline_loop.f
+	$(VVP) pipeline_loop.out
+
+test_ivl_instr:
+	$(IVERILOG) -g2012 -o pipeline_instr.out -f files_pipeline_instr.f
+	$(VVP) pipeline_instr.out
+
+test_ivl_hazard:
+	$(IVERILOG) -g2012 -o pipeline_hazard.out -f files_pipeline_hazard.f
+	$(VVP) pipeline_hazard.out
+
+clean:
+	rm -rf simv* csrc* *.tmp *.vpd *.key *.log *.vcd ucli.key *.out
+
+help:
+	@echo "make -f Makefile.pipeline [compile|run|test|test_ivl|test_ivl_basic|test_ivl_loop|test_ivl_instr|test_ivl_hazard|check_ivl_techmem|clean]"

@@ -1,0 +1,104 @@
+digraph pipeline3 {
+    rankdir=LR;
+    splines=ortho;
+    nodesep=0.5;
+    ranksep=0.8;
+    fontname="Helvetica";
+
+    node [shape=record, fontname="Helvetica", fontsize=11];
+    edge [fontname="Helvetica", fontsize=10];
+
+    PC   [label="{PC|clk,rst,en|pc_q}"];
+    IM   [label="{IM|clk, addr|ins}"];
+    IFID [label="{IF_ID|clk,rst,en,clear,valid_in,pc_in,pc4_in,ins_in|valid_out,pc_out,pc4_out,ins_out}"];
+
+    DEC  [label="{Decoder|ins|reg_write,mem_write,mem_read,use_imm,wb_sel,imm_sel,branch_type,jump_type,alu_op,illegal}"];
+    IMM  [label="{ImmGen|ins,imm_sel|imm_value}"];
+    RF   [label="{RF|clk,we,rr1,rr2,wr,wd|rd1,rd2}"];
+    ALU  [label="{ALU|A,B,ALUOp|zero,ALUResult}"];
+    DM   [label="{DM|clk,re,we,addr,wd|rd}"];
+
+    WBREG [label="{WB Registers|wb_valid,wb_reg_write,wb_sel_q,wb_rd_q,wb_pc4_q,wb_alu_result_q}"];
+    IMREQ [label="{IM Request Regs|im_req_valid_q,im_req_pc_q}"];
+
+    MUXA [label="{Forward Mux A|rs1_data_raw / wb_data|operand_a}", shape=box];
+    MUXB [label="{Forward Mux B|rs2_data_raw / wb_data|operand_b_raw}", shape=box];
+    MUXALUB [label="{ALU Src B Mux|operand_b_raw / imm_value|alu_src_b}", shape=box];
+    WBMUX [label="{WB Mux|ALU / MEM / PC4|wb_data}", shape=box];
+
+    BRCMP [label="{Branch Compare|operand_a == operand_b_raw|branch_eq}", shape=box];
+    REDIR [label="{Redirect Logic|branch_taken/jump_taken|redirect_valid,redirect_pc}", shape=box];
+    PCMUX [label="{PC Next Mux|pc_plus4_if / redirect_pc|pc_next}", shape=box];
+    ADD4  [label="{Adder|pc_q + 4|pc_plus4_if}", shape=box];
+    IFPC4 [label="{Adder|im_req_pc_q + 4|if_pc4_in}", shape=box];
+
+    INS   [label="if_id_ins[31:0]", shape=note];
+    RS1   [label="rs1 = if_id_ins[19:15]", shape=note];
+    RS2   [label="rs2 = if_id_ins[24:20]", shape=note];
+    RD    [label="rd = if_id_ins[11:7]", shape=note];
+
+    // IF path
+    PC -> ADD4 [label="pc_q"];
+    ADD4 -> PCMUX [label="pc_plus4_if"];
+    PCMUX -> PC [label="pc_next"];
+    PC -> IM [label="pc_q"];
+    IM -> IFID [label="fetched_ins"];
+    IMREQ -> IFID [label="valid_in, pc_in"];
+    IFPC4 -> IFID [label="pc4_in"];
+    REDIR -> IFID [label="clear"];
+    IMREQ -> IFPC4 [label="im_req_pc_q"];
+
+    // Decode path
+    IFID -> INS [label="ins_out"];
+    IFID -> DEC [label="if_id_ins"];
+    IFID -> IMM [label="if_id_ins"];
+    IFID -> REDIR [label="if_id_pc, if_id_pc4"];
+    INS -> RS1;
+    INS -> RS2;
+    INS -> RD;
+
+    // RF path
+    RS1 -> RF [label="rr1"];
+    RS2 -> RF [label="rr2"];
+    WBREG -> RF [label="wb_rd_q, rf_we"];
+    WBMUX -> RF [label="wd = wb_data"];
+    RF -> MUXA [label="rs1_data_raw"];
+    RF -> MUXB [label="rs2_data_raw"];
+
+    // Forward/WB feedback
+    WBREG -> MUXA [label="wb_data select hit"];
+    WBREG -> MUXB [label="wb_data select hit"];
+    WBMUX -> MUXA [label="wb_data"];
+    WBMUX -> MUXB [label="wb_data"];
+
+    // Execute path
+    MUXA -> ALU [label="operand_a"];
+    MUXB -> MUXALUB [label="operand_b_raw"];
+    IMM -> MUXALUB [label="imm_value"];
+    MUXALUB -> ALU [label="alu_src_b"];
+    DEC -> ALU [label="dec_alu_op"];
+    MUXA -> BRCMP [label="operand_a"];
+    MUXB -> BRCMP [label="operand_b_raw"];
+    BRCMP -> REDIR [label="branch_eq"];
+    DEC -> REDIR [label="branch_type,jump_type,illegal"];
+    IMM -> REDIR [label="imm_value"];
+    MUXA -> REDIR [label="operand_a"];
+
+    // Data memory
+    ALU -> DM [label="alu_result -> addr"];
+    MUXB -> DM [label="operand_b_raw -> wd"];
+    DEC -> DM [label="dmem_re,dmem_we"];
+    DM -> WBMUX [label="dmem_rdata"];
+
+    // WB path
+    ALU -> WBREG [label="wb_alu_result_q"];
+    IFID -> WBREG [label="if_id_pc4 -> wb_pc4_q"];
+    RD -> WBREG [label="rd -> wb_rd_q"];
+    DEC -> WBREG [label="stage_valid, dec_reg_write, dec_wb_sel"];
+    WBREG -> WBMUX [label="wb_sel_q, wb_pc4_q, wb_alu_result_q"];
+
+    // IM request regs and PC redirect
+    PC -> IMREQ [label="pc_q"];
+    REDIR -> IMREQ [label="~redirect_valid -> im_req_valid_q"];
+    REDIR -> PCMUX [label="redirect_valid, redirect_pc"];
+}

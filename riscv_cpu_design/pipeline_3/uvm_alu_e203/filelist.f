@@ -1,0 +1,15 @@
+tb/dut.sv
+tb/driver.sv
+../rtl_pipeline/ALU.v
+tb/top_tb.sv
+../rtl_pipeline/ALU.v
+../e203_hbirdv2/rtl/e203/core/e203_exu_alu_dpath.v
+../e203_hbirdv2/rtl/e203/general/sirv_gnrl_dffs.v
+../e203_hbirdv2/rtl/e203/general/sirv_gnrl_bufs.v
+../e203_hbirdv2/rtl/e203/general/sirv_gnrl_icbs.v
+../e203_hbirdv2/rtl/e203/general/sirv_gnrl_ram.v
+../e203_hbirdv2/rtl/e203/general/sirv_gnrl_xchecker.v
+../e203_hbirdv2/rtl/e203/general/sirv_sim_ram.v
+../e203_hbirdv2/rtl/e203/general/sirv_sram_icb_ctrl.v
+../e203_hbirdv2/rtl/e203/general/sirv_1cyc_sram_ctrl.v
+../e203_hbirdv2/rtl/e203/core/e203_clkgate.v
